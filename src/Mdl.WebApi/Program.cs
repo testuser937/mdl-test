@@ -2,7 +2,7 @@ using System.Data;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
 using Mdl.WebApi.Configuration;
-using Mdl.WebApi.Repository;
+using Mdl.WebApi.Repositories;
 using Mdl.WebApi.Services;
 using Npgsql;
 
@@ -10,14 +10,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 var appConfiguration = builder.Configuration.Get<AppConfiguration>();
 builder.Services.AddSingleton(appConfiguration);
 builder.Services.AddSingleton(appConfiguration.SmtpConfiguration);
-builder.Services.AddTransient<IDbConnection>(_ => new NpgsqlConnection(appConfiguration.ConnectionString));
-builder.Services.AddTransient<IMailService, MailService>();
-builder.Services.AddTransient<IMailRepository, MailRepository>();
+builder.Services.AddSingleton<ISmtpClientFactory, SmtpClientFactory>();
+builder.Services.AddScoped<IDbConnection>(_ => new NpgsqlConnection(appConfiguration.ConnectionString));
+builder.Services.AddScoped<IMailService, MailService>();
+builder.Services.AddScoped<IMailRepository, MailRepository>();
 
 builder.Services.AddSwaggerGen(options =>
 {

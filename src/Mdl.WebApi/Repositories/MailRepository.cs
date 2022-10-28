@@ -3,9 +3,9 @@ using System.Data;
 using Dapper;
 using Mdl.WebApi.Contracts;
 
-namespace Mdl.WebApi.Repository;
+namespace Mdl.WebApi.Repositories;
 
-/// <inheritdoc />
+/// Репозиторий писем
 public class MailRepository : IMailRepository
 {
     private readonly IDbConnection _dbConnection;

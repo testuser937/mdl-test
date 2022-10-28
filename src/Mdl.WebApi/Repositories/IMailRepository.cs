@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using Mdl.WebApi.Contracts;
 
-namespace Mdl.WebApi.Repository;
+namespace Mdl.WebApi.Repositories;
 
 /// <summary>
 /// Предоставляет методы БД для писем

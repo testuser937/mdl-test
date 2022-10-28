@@ -10,8 +10,13 @@ public static class MailValidator
     /// </summary>
     /// <param name="mail">E-mail адресс</param>
     /// <returns>Результат валидации (true - валиден, false - невалиден)</returns>
-    public static bool IsValidMail(string mail)
+    public static bool IsValidMail(string? mail)
     {
+        if (mail == null)
+        {
+            throw new ArgumentException("Mail can not be null or empty", nameof(mail));
+        }
+
         var trimmedEmail = mail.Trim();
 
         if (trimmedEmail.EndsWith("."))

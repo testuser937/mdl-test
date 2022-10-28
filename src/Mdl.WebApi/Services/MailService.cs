@@ -1,38 +1,34 @@
 ﻿using System.Collections.Immutable;
-using System.Net;
 using System.Net.Mail;
 using Mdl.WebApi.Configuration;
 using Mdl.WebApi.Contracts;
-using Mdl.WebApi.Repository;
+using Mdl.WebApi.Repositories;
 
 namespace Mdl.WebApi.Services;
 
-/// <inheritdoc />
+/// <summary>
+/// Сервис для работы с письмами
+/// </summary>
 public class MailService : IMailService
 {
     private readonly IMailRepository _mailRepository;
     private readonly SmtpConfiguration _smtpConfiguration;
-    private readonly SmtpClient _smtpClient;
+    private readonly ISmtpClientFactory _smtpClientFactory;
 
     /// <summary>
     /// Создает новый экземпляр сервиса для работы с письмами
     /// </summary>
     /// <param name="mailRepository">Репозиторий писем</param>
     /// <param name="smtpConfiguration">Конфигурация SMTP</param>
-    public MailService(IMailRepository mailRepository, SmtpConfiguration smtpConfiguration)
+    /// <param name="smtpClientFactory">Фабрика SMTP-клиентов</param>
+    public MailService(
+        IMailRepository mailRepository,
+        SmtpConfiguration smtpConfiguration,
+        ISmtpClientFactory smtpClientFactory)
     {
         _mailRepository = mailRepository;
         _smtpConfiguration = smtpConfiguration;
-        _smtpClient = CreateSmtpClient();
-    }
-
-    private SmtpClient CreateSmtpClient()
-    {
-        var smtpClient = new SmtpClient(_smtpConfiguration.SmtpHost, _smtpConfiguration.SmtpPort);
-        smtpClient.EnableSsl = _smtpConfiguration.EnableSsl;
-        smtpClient.UseDefaultCredentials = false;
-        smtpClient.Credentials = new NetworkCredential(_smtpConfiguration.Login, _smtpConfiguration.Password);
-        return smtpClient;
+        _smtpClientFactory = smtpClientFactory;
     }
 
     /// <inheritdoc />
@@ -71,7 +67,7 @@ public class MailService : IMailService
     private async Task SendMailInternal(MailSendModel mail)
     {
         var recipients = string.Join(",", mail.Recipients);
-        var mailMessage = new MailMessage
+        using var mailMessage = new MailMessage
         {
             From = new MailAddress(_smtpConfiguration.FromAddress, _smtpConfiguration.FromDisplayName),
             Subject = mail.Subject,
@@ -79,6 +75,7 @@ public class MailService : IMailService
         };
         mailMessage.To.Add(recipients);
 
-        await _smtpClient.SendMailAsync(mailMessage);
+        using var smtpClient = _smtpClientFactory.Create(_smtpConfiguration);
+        await smtpClient.SendMailAsync(mailMessage);
     }
 }
